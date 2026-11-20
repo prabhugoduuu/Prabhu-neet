@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -18,22 +20,47 @@ jobs:
           java-version: 21
       - name: Prepare web files
         run: |
-          mkdir -p /tmp/src /tmp/app/www
-          rsync -a --exclude='.git' --exclude='.github' ./ /tmp/src/
-          for z in *.zip; do
-            if [ -f "$z" ]; then unzip -o -q "$z" -d /tmp/src || true; fi
-          done
-          IDX=$(find /tmp/src -iname 'index*.html' -not -path '*/node_modules/*' -not -path '*/__MACOSX/*' | awk '{print length, $0}' | sort -n | head -n1 | cut -d' ' -f2-)
-          if [ -z "$IDX" ]; then
-            echo "ERROR: index html dorakaledu"
-            ls -R /tmp/src | head -50
-            exit 1
+          mkdir -p /tmp/app/www
+          BEST=""; BT=-1
+          while IFS= read -r f; do
+            t=$(git log -1 --format=%ct -- "$f"); t=${t:-0}
+            if [ "$t" -gt "$BT" ]; then BT=$t; BEST="$f"; fi
+          done < <(find . -iname 'index*.html' -not -path './node_modules/*' -not -path './.git/*')
+          if [ -n "$BEST" ]; then
+            SRC=$(dirname "$BEST")
+          else
+            mkdir -p /tmp/zipx
+            for z in *.zip; do
+              if [ -f "$z" ]; then unzip -o -q "$z" -d /tmp/zipx || true; fi
+            done
+            BEST=$(find /tmp/zipx -iname 'index*.html' -not -path '*/__MACOSX/*' | head -n1)
+            if [ -z "$BEST" ]; then
+              echo "ERROR: index html dorakaledu"
+              ls -R . | head -50
+              exit 1
+            fi
+            SRC=$(dirname "$BEST")
           fi
-          SRC=$(dirname "$IDX")
-          cp -r "$SRC"/. /tmp/app/www/
-          cp "$IDX" /tmp/app/www/index.html
-          rm -f /tmp/app/www/*.zip
-          ls -R /tmp/app/www | head -50
+          echo "Using: $BEST"
+          rsync -a --exclude='.git' --exclude='.github' --exclude='node_modules' "$SRC"/ /tmp/app/www/
+          find /tmp/app/www -maxdepth 1 -iname 'index*.html' -delete
+          cp "$BEST" /tmp/app/www/index.html
+          rm -f /tmp/app/www/*.zip /tmp/app/www/debug.keystore
+          cat > /tmp/app/www/sw.js <<'EOF'
+          self.addEventListener('install',()=>self.skipWaiting());
+          self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.map(x=>caches.delete(x)))).then(()=>self.registration.unregister())));
+          EOF
+          grep -o "VER='[^']*'" /tmp/app/www/index.html || true
+          ls /tmp/app/www | head -50
+      - name: Signing key
+        run: |
+          mkdir -p ~/.android
+          if [ -f debug.keystore ]; then
+            cp debug.keystore ~/.android/debug.keystore
+            echo "Using keystore from repo"
+          else
+            keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
       - name: Build APK
         working-directory: /tmp/app
         run: |
@@ -48,6 +75,7 @@ jobs:
           npm i @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
           npx cap add android
           npx cap sync android
+          sed -i "s/versionCode 1/versionCode ${GITHUB_RUN_NUMBER}/" android/app/build.gradle
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
@@ -55,3 +83,8 @@ jobs:
         with:
           name: NEET-Mock-APK
           path: /tmp/app/android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        if: ${{ hashFiles('debug.keystore') == '' }}
+        with:
+          name: debug-keystore
+          path: /home/runner/.android/debug.keystore
