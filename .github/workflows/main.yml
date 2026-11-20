@@ -1,6 +1,8 @@
 name: Build Android APK
 on:
   push:
+    paths-ignore:
+      - '**.md'
   workflow_dispatch:
 jobs:
   build:
@@ -19,18 +21,18 @@ jobs:
           mkdir -p /tmp/src /tmp/app/www
           rsync -a --exclude='.git' --exclude='.github' ./ /tmp/src/
           for z in *.zip; do
-            [ -f "$z" ] && unzip -o -q "$z" -d /tmp/src
+            if [ -f "$z" ]; then unzip -o -q "$z" -d /tmp/src || true; fi
           done
-          IDX=$(find /tmp/src -name index.html -not -path '*/node_modules/*' -not -path '*/__MACOSX/*' | awk '{print length, $0}' | sort -n | head -n1 | cut -d' ' -f2-)
+          IDX=$(find /tmp/src -iname 'index*.html' -not -path '*/node_modules/*' -not -path '*/__MACOSX/*' | awk '{print length, $0}' | sort -n | head -n1 | cut -d' ' -f2-)
           if [ -z "$IDX" ]; then
-            echo "ERROR: index.html dorakaledu. Repo lo index.html upload cheyyandi."
+            echo "ERROR: index html dorakaledu"
             ls -R /tmp/src | head -50
             exit 1
           fi
           SRC=$(dirname "$IDX")
           cp -r "$SRC"/. /tmp/app/www/
+          cp "$IDX" /tmp/app/www/index.html
           rm -f /tmp/app/www/*.zip
-          echo "Files in www:"
           ls -R /tmp/app/www | head -50
       - name: Build APK
         working-directory: /tmp/app
