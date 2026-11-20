@@ -1,5 +1,6 @@
 name: Build Android APK
 on:
+  push:
   workflow_dispatch:
 jobs:
   build:
@@ -15,17 +16,24 @@ jobs:
           java-version: 21
       - name: Prepare web files
         run: |
-          mkdir -p www
+          mkdir -p /tmp/src /tmp/app/www
+          rsync -a --exclude='.git' --exclude='.github' ./ /tmp/src/
           for z in *.zip; do
-            [ -f "$z" ] && unzip -o -q "$z" -d unzipped
+            [ -f "$z" ] && unzip -o -q "$z" -d /tmp/src
           done
-          if [ -d unzipped ]; then ROOT=unzipped; else ROOT=.; fi
-          IDX=$(find "$ROOT" -name index.html -not -path '*/node_modules/*' -not -path '*/__MACOSX/*' -not -path './www/*' | head -n1)
-          if [ -z "$IDX" ]; then echo "index.html dorakaledu"; exit 1; fi
+          IDX=$(find /tmp/src -name index.html -not -path '*/node_modules/*' -not -path '*/__MACOSX/*' | awk '{print length, $0}' | sort -n | head -n1 | cut -d' ' -f2-)
+          if [ -z "$IDX" ]; then
+            echo "ERROR: index.html dorakaledu. Repo lo index.html upload cheyyandi."
+            ls -R /tmp/src | head -50
+            exit 1
+          fi
           SRC=$(dirname "$IDX")
-          rsync -a --exclude='.git' --exclude='.github' --exclude='*.zip' --exclude='node_modules' --exclude='www' --exclude='unzipped' --exclude='android' "$SRC"/ www/
-          ls -R www | head -50
-      - name: Make Android project and build
+          cp -r "$SRC"/. /tmp/app/www/
+          rm -f /tmp/app/www/*.zip
+          echo "Files in www:"
+          ls -R /tmp/app/www | head -50
+      - name: Build APK
+        working-directory: /tmp/app
         run: |
           cat > capacitor.config.json <<EOF
           {
@@ -44,4 +52,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: NEET-Mock-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: /tmp/app/android/app/build/outputs/apk/debug/app-debug.apk
