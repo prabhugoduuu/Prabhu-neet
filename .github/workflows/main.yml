@@ -1,6 +1,6 @@
 name: Build Android APK
 on:
-  push: workflow_dispatch:
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,21 +13,29 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+      - name: Prepare web files
+        run: |
+          mkdir -p www
+          for z in *.zip; do
+            [ -f "$z" ] && unzip -o -q "$z" -d unzipped
+          done
+          if [ -d unzipped ]; then ROOT=unzipped; else ROOT=.; fi
+          IDX=$(find "$ROOT" -name index.html -not -path '*/node_modules/*' -not -path '*/__MACOSX/*' -not -path './www/*' | head -n1)
+          if [ -z "$IDX" ]; then echo "index.html dorakaledu"; exit 1; fi
+          SRC=$(dirname "$IDX")
+          rsync -a --exclude='.git' --exclude='.github' --exclude='*.zip' --exclude='node_modules' --exclude='www' --exclude='unzipped' --exclude='android' "$SRC"/ www/
+          ls -R www | head -50
       - name: Make Android project and build
         run: |
-          OWNER=$(echo "$GITHUB_REPOSITORY_OWNER" | tr 'A-Z' 'a-z')
-          REPO="${GITHUB_REPOSITORY#*/}"
-          mkdir www && cp index.html www/index.html
           cat > capacitor.config.json <<EOF
           {
             "appId": "com.neetmock.app",
             "appName": "NEET Mock",
-            "webDir": "www",
-            "server": { "url": "https://$OWNER.github.io/$REPO/", "androidScheme": "https" }
+            "webDir": "www"
           }
           EOF
           npm init -y
-          npm i @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          npm i @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
           npx cap add android
           npx cap sync android
           cd android
