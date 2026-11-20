@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NEET Mock</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#17325f">
+<link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="NEET Mock">
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#1b2430;--mut:#5d6b7c;--hd:#17325f;--btn:#1f5fbf;--ok:#2e9e5b;--no:#d9503f;--mk:#7a4fd1;--un:#cdd3da;--ln:#d5dbe3}
+@media(prefers-color-scheme:dark){:root{--bg:#10151c;--card:#1a222d;--ink:#e8edf3;--mut:#93a1b3;--hd:#0c2144;--btn:#2f6fd0;--un:#3a4656;--ln:#2e3a49}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.w{max-width:880px;margin:0 auto;padding:12px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--hd);color:#fff;padding:10px 12px;position:sticky;top:0;z-index:5}
+.bar span{display:flex;align-items:center;gap:8px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:14px;margin:10px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.row2{display:flex;align-items:center;gap:8px;margin:6px 0}
+input,textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:9px;margin:6px 0}
+.miss{border-color:var(--no)}
+.b{background:var(--btn);color:#fff;border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}
+.b.g{background:var(--un);color:var(--ink)}.b.r{background:var(--no)}.b.p{background:var(--mk)}
+.err{color:var(--no)}
+.qt{font-size:18px;margin:8px 0;white-space:pre-wrap}
+img{max-width:100%;border-radius:8px}
+.opt{display:flex;gap:10px;padding:10px 12px;border:2px solid var(--ln);border-radius:10px;margin:8px 0;cursor:pointer}
+.opt.s{border-color:var(--btn)}.opt.c{border-color:var(--ok)}.opt.x{border-color:var(--no)}
+.nav{display:flex;flex-wrap:wrap;gap:8px}.nav .b{flex:1 1 40%}
+.pl{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:8px}
+.pl button{height:44px;border:0;border-radius:8px;color:#fff;font:inherit;font-weight:700;background:var(--un);color:var(--ink)}
+.pl .a{background:var(--ok);color:#fff}.pl .n{background:var(--no);color:#fff}.pl .m{background:var(--mk);color:#fff}
+.pl .am{background:var(--mk);color:#fff;box-shadow:0 0 0 3px var(--ok) inset}.pl .cur{outline:3px solid var(--ink)}
+.lg{font-size:13px;color:var(--mut)}.lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin:0 4px 0 8px;vertical-align:-1px}
+.lg .a{background:var(--ok)}.lg .n{background:var(--no)}.lg .m{background:var(--mk)}.lg .u{background:var(--un)}
+.tabs{display:flex;gap:6px;margin:8px 0}.tabs .b{flex:1;padding:10px 4px;font-size:14px}.nt img{display:block;margin:12px 0}.th{display:flex;flex-wrap:wrap;gap:6px}.th img{width:70px;height:70px;object-fit:cover}.nt{white-space:pre-wrap;font-size:17px;line-height:1.7}.big h1{margin:0;font-size:44px}.ex{background:var(--bg);padding:8px;border-radius:8px}
+</style></head><body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.min.js"></script>
+<script>
+const SB='https://trwjvvgzsaaxvqkhzisl.supabase.co',KEY='sb_publishable_8_T9rW3XyqzpcB--TRsLyg_tjKaZmEM';
+const db=supabase.createClient(SB,KEY),$=s=>document.querySelector(s),app=$('#app'),L='ABCD';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const VER='1.2';
+let tests=[],atts=[],draft,T,tick,ip;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();ip=e});
+const bar=(t,r='')=>`<div class="bar"><b>${esc(t)}</b><span>${r}</span></div>`;
+const show=(h,keep)=>{app.innerHTML=h;if(!keep)scrollTo(0,0)};
+const back='<button class="b g" onclick="home()">Back</button>';
+
+/* ---------- auth ---------- */
+function authView(m=''){show(bar('NEET Mock')+`<div class="w"><div class="card"><h2>Sign in</h2><input id="em" type="email" placeholder="Email" autocomplete="username"><input id="pw" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password"><p class="err">${m}</p><div class="nav"><button class="b" onclick="auth(0)">Sign in</button><button class="b g" onclick="auth(1)">Create account</button></div></div></div>`)}
+async function auth(up){const c={email:$('#em').value.trim(),password:$('#pw').value};const {data,error}=up?await db.auth.signUp(c):await db.auth.signInWithPassword(c);if(error)return authView(esc(error.message));if(!data.session)return authView('Confirm your email, then sign in.');home()}
+function out(){db.auth.signOut().then(()=>authView())}
+
+/* ---------- home ---------- */
+let tab=localStorage.tab||'full';
+const isNote=t=>!!(t.questions&&t.questions[0]&&t.questions[0].note!==undefined);
+const isFull=t=>!isNote(t)&&/full/i.test(t.subject||'');
+const kind=t=>isNote(t)?'notes':isFull(t)?'full':'sub';
+const ORD=['Physics','Chemistry','Biology','Botany','Zoology'];
+const SUBS=['Physics','Chemistry','Botany','Zoology','Biology'];
+async function home(){
+  clearInterval(tick);
+  show(bar('NEET Mock')+'<div class="w">Loading…</div>');
+  const [a,b]=await Promise.all([db.from('tests').select('*').order('created_at',{ascending:false}),db.from('attempts').select('*').order('created_at',{ascending:false}).limit(40)]);
+  if(a.error)return show(bar('NEET Mock','<button class="b g" onclick="out()">Sign out</button>')+`<div class="w err">${esc(a.error.message)}</div>`);
+  tests=a.data;atts=b.data||[];renderHome();
+}
+function setTab(k){tab=k;localStorage.tab=k;renderHome()}
+const card=t=>isNote(t)?`<div class="card row"><div><b>${esc(t.title)}</b></div><div class="nav"><button class="b" onclick="readNote('${t.id}')">Read</button><button class="b g" onclick="delTest('${t.id}')">✕</button></div></div>`
+:`<div class="card row"><div><b>${esc(t.title)}</b><br><small>${t.questions.length} Q · ${t.duration_min} min</small></div><div class="nav"><button class="b" onclick="start('${t.id}')">Start</button><button class="b g" onclick="editTest('${t.id}')">Edit</button><button class="b g" onclick="delTest('${t.id}')">✕</button></div></div>`;
+const grp=l=>{const m={};l.forEach(t=>{const s=(t.subject||'Other').trim()||'Other';(m[s]=m[s]||[]).push(t)});
+  return Object.keys(m).sort((x,y)=>{const i=ORD.indexOf(x),j=ORD.indexOf(y);return (i<0?9:i)-(j<0?9:j)}).map(s=>`<h3>${esc(s)} <small>(${m[s].length})</small></h3>`+m[s].map(card).join('')).join('')};
+function renderHome(){
+  const list=tests.filter(t=>kind(t)===tab);
+  const tabs=[['full','Full Mocks'],['sub','Subject-wise'],['notes','Notes']].map(([k,n])=>`<button class="b ${tab===k?'':'g'}" onclick="setTab('${k}')">${n} (${tests.filter(t=>kind(t)===k).length})</button>`).join('');
+  const empty={full:'No full mock tests yet.',sub:'No subject-wise tests yet.',notes:'No short notes yet.'}[tab];
+  const body=list.length?(tab==='full'?list.map(card).join(''):grp(list)):`<p>${empty}</p>`;
+  const past=tab==='notes'?'':'<h3>Past attempts</h3>'+(atts.map(x=>{const t=tests.find(t=>t.id===x.test_id);return t&&kind(t)===tab?`<div class="card row" onclick="review('${x.id}')"><div><b>${esc(t.title)}</b><br><small>${new Date(x.created_at).toLocaleDateString()}</small></div><b>${x.score} / ${4*t.questions.length}</b></div>`:''}).join('')||'<p>None yet.</p>');
+  show(bar('NEET Mock',(ip?'<button class="b g" onclick="ip.prompt()">Install</button>':'')+'<button class="b g" onclick="settings()">Settings</button><button class="b g" onclick="out()">Sign out</button>')+
+  `<div class="w"><button class="b" onclick="upl()">+ Add (test / notes)</button><div class="tabs">${tabs}</div>${body}${past}</div>`);
+}
+async function delTest(id){if(!confirm('Delete this and its attempts?'))return;await db.from('tests').delete().eq('id',id);home()}
+function readNote(id){const t=tests.find(x=>x.id===id);show(bar(t.title,'<button class="b g" onclick="renderHome()">Back</button>')+`<div class="w"><div class="card"><small>${esc(t.subject||'')}</small><div class="nt">${esc(t.questions[0].note)}</div>${(t.questions[0].imgs||[]).map(u=>`<img src="${u}">`).join('')}</div></div>`)}
+function editTest(id){const t=tests.find(x=>x.id===id);draft={id,title:t.title,subject:t.subject,duration_min:t.duration_min,qs:JSON.parse(JSON.stringify(t.questions))};prev()}
+
+/* ---------- settings ---------- */
+function settings(){show(bar('Settings',back)+`<div class="w card"><label>Gemini API key<input id="gk" type="password" value="${esc(localStorage.gk||'')}"></label><label>Model<input id="gm" value="${esc(localStorage.gm||'gemini-flash-latest')}"></label><p><small>Saved only in this browser. It is never uploaded to GitHub or Supabase.</small><br><small>App version ${VER}</small></p><button class="b" onclick="localStorage.gk=$('#gk').value.trim();localStorage.gm=$('#gm').value.trim();home()">Save</button></div>`)}
+
+/* ---------- upload + extract ---------- */
+let noteImgs=[];
+function upl(){noteImgs=[];const dt={full:'full',sub:'sub',notes:'notes'}[tab]||'full';
+  show(bar('Add',back)+`<div class="w card"><label>Type<select id="ty" onchange="tyChg()"><option value="full">Full mock test</option><option value="sub">Subject-wise test</option><option value="notes">Short notes</option></select></label><input id="ti" placeholder="Title (e.g. Full Mock 1 / Haloalkanes PYQ)"><label id="sw">Subject<select id="su">${SUBS.map(x=>`<option>${x}</option>`).join('')}</select></label><label id="dw">Duration (minutes)<input id="du" type="number" value="200"></label><textarea id="nt" rows="10" placeholder="Paste short notes here, or choose a file below and tap Extract text" hidden></textarea><label>File(s): PDF, HTML, TXT or image. Select many for bulk upload.<input id="fi" type="file" multiple accept=".pdf,.html,.htm,.txt,image/*"></label><label id="nd" hidden>Diagrams for this note (optional, many)<input id="ni" type="file" accept="image/*" multiple onchange="noteImgsSet(this)"></label><div id="np" class="th"></div><p id="st"></p><button class="b" id="b1" onclick="go()">Extract questions</button> <button class="b p" id="b2" onclick="saveNote()" hidden>Save notes</button></div>`);
+  $('#ty').value=dt;tyChg();}
+function tyChg(){const t=$('#ty').value;$('#sw').hidden=t==='full';$('#dw').hidden=t==='notes';$('#nt').hidden=t!=='notes';$('#b2').hidden=t!=='notes';$('#nd').hidden=t!=='notes';
+  $('#b1').textContent=t==='notes'?'Extract text from file':'Extract questions';
+  if(t==='full')$('#du').value=200;if(t==='sub')$('#du').value=60}
+const toImg=(f,w=900)=>new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const s=Math.min(1,w/im.width),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7))};im.onerror=rej;im.src=URL.createObjectURL(f)});
+async function noteImgsSet(el){for(const f of el.files)noteImgs.push(await toImg(f));el.value='';noteThumbs()}
+function noteThumbs(){$('#np').innerHTML=noteImgs.map((u,i)=>`<img src="${u}" onclick="noteImgs.splice(${i},1);noteThumbs()" title="Tap to remove">`).join('')}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function retry(fn,onwait){for(let a=0;;a++){try{return await fn()}catch(e){if(a<4&&/quota|rate|429|exhaust|overload|unavailable|busy/i.test(e.message)){onwait();await wait(30000);continue}throw e}}}
+async function bulkGo(files,ty,subj,dur){
+  const st=$('#st'),log=[],R=()=>st.innerHTML=log.join('<br>');let ok=0;
+  for(const f of files){
+    const title=f.name.replace(/\.[^.]+$/,''),i=log.push('⏳ '+esc(f.name))-1;R();
+    try{
+      if(ty==='notes'){
+        const t=await retry(()=>gem(f,NOTEPROMPT,0),()=>{log[i]='⏳ '+esc(f.name)+' · limit, waiting 30s…';R()});
+        if(!t)throw Error('empty');
+        const {error}=await db.from('tests').insert({title,subject:subj,duration_min:1,questions:[{note:t}]});if(error)throw error;
+        log[i]='✅ '+esc(f.name)+' (note)';
+      }else{
+        const qs=await retry(()=>extract(f),()=>{log[i]='⏳ '+esc(f.name)+' · limit, waiting 30s…';R()});
+        if(!qs.length)throw Error('no questions found');
+        const {error}=await db.from('tests').insert({title,subject:ty==='full'?'Full Mock':subj,duration_min:dur,questions:qs});if(error)throw error;
+        const na=qs.filter(x=>x.ans<0).length;
+        log[i]='✅ '+esc(f.name)+': '+qs.length+' Q'+(na?', '+na+' without answer (use Edit)':'');
+      }
+      ok++;
+    }catch(e){log[i]='❌ '+esc(f.name)+': '+esc(e.message||String(e))}
+    R();
+  }
+  log.push('<b>Done: '+ok+' of '+files.length+' saved.</b> <button class="b" onclick="tab=\''+(ty==='notes'?'notes':ty)+'\';localStorage.tab=tab;home()">Go home</button>');R();
+}
+const b64=f=>new Promise((r,j)=>{const d=new FileReader();d.onload=()=>r(d.result.split(',')[1]);d.onerror=j;d.readAsDataURL(f)});
+const PROMPT='Extract every multiple-choice question from this document for a NEET mock test. Return ONLY a JSON array. Each item: {"q": question text, "opts": [exactly 4 option texts without the A/B/C/D labels], "ans": index 0-3 of the correct option taken from the answer key in the document, or -1 if no answer is given, "exp": short explanation if present, else ""}. Write chemical formulas and maths in plain Unicode (H₂O, x², √, ×), never LaTeX. Keep the original order. Do not invent questions. If a question refers to a diagram, still include its text.';
+async function gem(f,prompt,json){
+  const key=localStorage.gk;if(!key)throw Error('Add your Gemini API key in Settings first.');
+  const model=localStorage.gm||'gemini-flash-latest',n=f.name.toLowerCase(),parts=[];
+  if(/\.html?$/.test(n)){const d=new DOMParser().parseFromString(await f.text(),'text/html');d.querySelectorAll('style').forEach(e=>e.remove());parts.push({text:d.documentElement.textContent.slice(0,400000)})}
+  else if(/\.txt$/.test(n))parts.push({text:(await f.text()).slice(0,400000)});
+  else parts.push({inline_data:{mime_type:f.type||'application/pdf',data:await b64(f)}});
+  parts.push({text:prompt});
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts}],generationConfig:json?{responseMimeType:'application/json',temperature:0}:{temperature:0}})});
+  const j=await r.json();if(!r.ok)throw Error(j.error?.message||'Gemini error '+r.status);
+  const t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('').replace(/^```(json)?|```$/g,'').trim();
+  return t}
+async function extract(f){
+  const t=await gem(f,PROMPT,1);
+  let a=JSON.parse(t);if(!Array.isArray(a))a=a.questions||[];
+  return a.map(x=>({q:x.q||'',opts:[0,1,2,3].map(k=>(x.opts||[])[k]??''),ans:Number.isInteger(x.ans)&&x.ans>=0&&x.ans<4?x.ans:-1,exp:x.exp||''}));
+}
+const NOTEPROMPT='Extract the study notes from this document as clean plain text for a NEET short-notes reader. Keep headings on their own lines, use "• " for bullet points, keep formulas in plain Unicode (H₂O, x², √, ×), never LaTeX. Keep the original order. Do not add or invent content. Return only the text.';
+async function go(){
+  const fl=[...$('#fi').files],f=fl[0],ty=$('#ty').value;if(!f)return $('#st').textContent='Choose a file first.';
+  if(fl.length>1){$('#b1').disabled=true;if($('#b2'))$('#b2').hidden=true;return bulkGo(fl,ty,$('#su').value,+$('#du').value||(ty==='full'?200:60))}
+  $('#st').textContent='Reading the file with Gemini… this can take up to a minute.';
+  try{
+    if(ty==='notes'){$('#nt').value=await gem(f,NOTEPROMPT,0);if(!$('#ti').value)$('#ti').value=f.name.replace(/\.[^.]+$/,'');return $('#st').textContent='Text ready. Check it, then tap Save notes.'}
+    const qs=await extract(f);if(!qs.length)throw Error('No questions found in this file.');
+    draft={title:$('#ti').value||f.name,subject:ty==='full'?'Full Mock':$('#su').value,duration_min:+$('#du').value||(ty==='full'?200:60),qs};prev()}
+  catch(e){$('#st').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+}
+async function saveNote(){const t=$('#nt').value.trim(),ti=$('#ti').value.trim();if(!ti)return $('#st').textContent='Enter a title.';if(!t)return $('#st').textContent='Notes are empty.';
+  const {error}=await db.from('tests').insert({title:ti,subject:$('#su').value,duration_min:1,questions:[{note:t,imgs:noteImgs}]});if(error)return $('#st').innerHTML='<span class="err">'+esc(error.message)+'</span>';tab='notes';localStorage.tab='notes';home()}
+
+/* ---------- preview / edit / save ---------- */
+function prev(keep){const q=draft.qs;show(bar('Check questions','<button class="b g" onclick="home()">Cancel</button>')+`<div class="w"><input value="${esc(draft.title)}" oninput="draft.title=this.value" placeholder="Title"><p>${q.length} questions. Fix mistakes, set missing answers, add diagrams, then save.</p><label class="card" style="display:block"><small>Bulk diagrams: select many images. File name number = question number (e.g. 5.jpg goes to Q5)</small><input type="file" accept="image/*" multiple onchange="bulkImg(this)"></label>`+
+q.map((x,i)=>`<div class="card"><div class="row"><b>Q${i+1}</b><button class="b g" onclick="delQ(${i})">Delete</button></div><textarea rows="3" oninput="draft.qs[${i}].q=this.value">${esc(x.q)}</textarea>`+
+x.opts.map((o,k)=>`<div class="row2"><b>${L[k]}</b><input value="${esc(o)}" oninput="draft.qs[${i}].opts[${k}]=this.value"></div>`).join('')+
+`<select class="${x.ans<0?'miss':''}" onchange="draft.qs[${i}].ans=+this.value;this.className=this.value<0?'miss':''"><option value="-1">Set correct answer</option>${[0,1,2,3].map(k=>`<option value="${k}" ${x.ans===k?'selected':''}>Answer: ${L[k]}</option>`).join('')}</select>${x.img?`<img src="${x.img}">`:''}<label><small>Diagram image</small><input type="file" accept="image/*" onchange="attach(${i},this)"></label></div>`).join('')+
+'<button class="b" onclick="save()">Save test</button></div>',keep)}
+async function bulkImg(el){let n=0;for(const f of el.files){const m=f.name.match(/\d+/);if(!m)continue;const k=+m[0]-1;if(draft.qs[k]){draft.qs[k].img=await toImg(f);n++}}el.value='';prev(1);alert(n+' diagrams attached.')}
+function delQ(i){draft.qs.splice(i,1);prev(1)}
+function attach(i,el){const f=el.files[0];if(!f)return;const im=new Image();im.onload=()=>{const s=Math.min(1,900/im.width),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);draft.qs[i].img=c.toDataURL('image/jpeg',.7);prev(1)};im.src=URL.createObjectURL(f)}
+async function save(){const bad=draft.qs.filter(x=>x.ans<0).length;if(bad&&!confirm(bad+' questions have no answer and will not be scored. Save anyway?'))return;
+  const row={title:draft.title,subject:draft.subject,duration_min:draft.duration_min,questions:draft.qs};const {error}=draft.id?await db.from('tests').update(row).eq('id',draft.id):await db.from('tests').insert(row);if(error)return alert(error.message);home()}
+
+/* ---------- CBT exam ---------- */
+function start(id){const t=tests.find(x=>x.id===id);clearInterval(tick);T={t,i:0,sel:{},mk:{},vis:{},end:Date.now()+t.duration_min*60000,t0:Date.now()};
+  show(`<div class="bar"><b>${esc(t.title)}</b><span><b id="tm"></b><button class="b r" onclick="submit()">Submit</button></span></div><div class="w" id="q"></div>`);tick=setInterval(clock,1000);clock();rq()}
+function clock(){const s=Math.max(0,Math.round((T.end-Date.now())/1000)),e=$('#tm');if(e)e.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');if(!s){clearInterval(tick);fin()}}
+const cls=j=>{const a=T.sel[j]!==undefined,m=T.mk[j];return a&&m?'am':m?'m':a?'a':T.vis[j]?'n':'u'};
+function rq(){const {t,i,sel}=T,q=t.questions[i];T.vis[i]=1;
+  $('#q').innerHTML=`<div class="card"><small>Question ${i+1} of ${t.questions.length}</small><p class="qt">${esc(q.q)}</p>${q.img?`<img src="${q.img}">`:''}${q.opts.map((o,k)=>`<div class="opt ${sel[i]===k?'s':''}" onclick="pick(${k})"><b>${L[k]}</b><span>${esc(o)}</span></div>`).join('')}</div>
+<div class="nav"><button class="b g" onclick="go2(${i-1})">Previous</button><button class="b g" onclick="clr()">Clear</button><button class="b p" onclick="markn()">Mark &amp; Next</button><button class="b" onclick="go2(${i+1})">Save &amp; Next</button></div>
+<div class="card"><div class="pl">${t.questions.map((_,j)=>`<button class="${cls(j)} ${j===i?'cur':''}" onclick="go2(${j})">${j+1}</button>`).join('')}</div><p class="lg"><i class="a"></i>Answered<i class="n"></i>Not answered<i class="m"></i>Marked<i class="u"></i>Not visited</p></div>`}
+const pick=k=>{T.sel[T.i]=k;rq()},clr=()=>{delete T.sel[T.i];rq()},markn=()=>{T.mk[T.i]=!T.mk[T.i];go2(T.i+1)};
+function go2(j){if(j>=0&&j<T.t.questions.length)T.i=j;rq();scrollTo(0,0)}
+function submit(){const n=T.t.questions.length,a=Object.keys(T.sel).length;if(confirm(`Answered ${a} of ${n}. Submit the test?`))fin()}
+async function fin(){clearInterval(tick);let c=0,w=0,s=0;T.t.questions.forEach((q,i)=>{if(q.ans<0)return;const x=T.sel[i];x===undefined?s++:x===q.ans?c++:w++});
+  const at={test_id:T.t.id,answers:T.sel,score:4*c-w,correct:c,wrong:w,skipped:s,time_taken_sec:Math.round((Date.now()-T.t0)/1000)};
+  const {data,error}=await db.from('attempts').insert(at).select().single();res(data||at,T.t,error)}
+
+/* ---------- result / review ---------- */
+function res(a,t,err){const n=t.questions.length,m=Math.floor(a.time_taken_sec/60);
+  show(bar('Result','<button class="b g" onclick="home()">Home</button>')+`<div class="w"><div class="card big"><h1>${a.score} <small>/ ${4*n}</small></h1><p>✔ ${a.correct} correct · ✘ ${a.wrong} wrong · ${a.skipped} skipped · ${m} min ${a.time_taken_sec%60} s</p>${err?`<p class="err">Not saved: ${esc(err.message)}</p>`:''}</div>`+
+  t.questions.map((q,i)=>{const x=a.answers[i];return `<div class="card"><small>Q${i+1}</small><p class="qt">${esc(q.q)}</p>${q.img?`<img src="${q.img}">`:''}${q.opts.map((o,k)=>`<div class="opt ${k===q.ans?'c':k===x?'x':''}"><b>${L[k]}</b><span>${esc(o)}</span></div>`).join('')}<p><small>${x===undefined?'Not attempted':'Your answer: '+L[x]}${q.ans>=0?' · Correct: '+L[q.ans]:' · No answer key'}</small></p>${q.exp?`<p class="ex">${esc(q.exp)}</p>`:''}</div>`}).join('')+
+  `<button class="b" onclick="start('${t.id}')">Retake</button></div>`)}
+function review(id){const a=atts.find(x=>x.id===id);res(a,tests.find(t=>t.id===a.test_id))}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{});
+db.auth.getSession().then(({data})=>data.session?home():authView());
+</script></body></html>
